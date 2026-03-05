@@ -1,0 +1,15 @@
+playwright
+openai
+requests
+beautifulsoup4
+python-dotenv
+schedule
+google-search-results
+playwright
+openai
+requests
+beautifulsoup4
+python-dotenv
+schedule
+google-search-results
+openai
