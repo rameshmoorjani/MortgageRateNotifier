@@ -1,0 +1,8 @@
+{
+  "id": "doc-breakeven",
+  "title": "Calculating Break-Even on Refinancing",
+  "content": "\n        Break-even analysis helps you determine if refinancing makes financial sense.\n        \n        Step 1: Calculate total refinancing costs\n        - Origination fee: (Loan amount \u00d7 0.5-1.0%)\n        - Appraisal: $300-700\n        - Title and insurance: $200-500\n        - Attorney (if applicable): $200-400\n        - Recording fees: $50-150\n        Total: Usually $3,000-$7,000 for a $300,000 loan\n        \n        Step 2: Calculate monthly savings\n        New payment - Old payment = Monthly savings\n        \n        Step 3: Calculate break-even\n        Refinancing costs \u00f7 Monthly savings = Break-even months\n        \n        Example:\n        - Current payment: $1,500/month at 5.0%\n        - Refinanced payment: $1,300/month at 4.0%\n        - Monthly savings: $200\n        - Refinancing costs: $5,000\n        - Break-even: 25 months\n        \n        Rule of thumb: If break-even is less than 50% of remaining loan term, it's worth considering.\n        ",
+  "category": "refinancing",
+  "source": "Consumer Financial Protection Bureau",
+  "date_added": "2026-04-08T08:17:30.146519"
+}

@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Mortgage Rate Notifier API
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: mortgage-notifier-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Local development: uses .env file
+      # Production: uses AWS Parameter Store (via AWS credentials below)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FRED_API_KEY=${FRED_API_KEY}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      # Pass AWS credentials for Parameter Store access in container
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      # Optional: Add more environment variables
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - SEARCH_ENGINE_ID=${SEARCH_ENGINE_ID:-}
+    volumes:
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+      # Mount data directory for user data
+      - ./data:/app/data
+      # Mount .env for local development (optional)
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mortgage-network
+    labels:
+      - "com.mortgage-notifier.service=api"
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+networks:
+  mortgage-network:
+    driver: bridge
+
+
+volumes:
+  logs:
+    driver: local
+  data:
+    driver: local

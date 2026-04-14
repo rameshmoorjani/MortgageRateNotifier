@@ -1,15 +1,40 @@
-playwright
-openai
-requests
-beautifulsoup4
-python-dotenv
-schedule
-google-search-results
-playwright
-openai
-requests
-beautifulsoup4
-python-dotenv
-schedule
-google-search-results
-openai
+# Web scraping & API
+playwright==1.40.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+
+# AI & LLM
+openai==1.3.5
+
+# Data & ML (for model integration)
+pandas==2.0.3
+numpy==1.24.3
+joblib==1.3.1
+scikit-learn==1.3.0
+
+# Model Hub Integration
+huggingface-hub==0.17.3
+
+# Utilities
+python-dotenv==1.0.0
+schedule==1.2.0
+google-search-results==2.4.2
+
+# Scheduling & Background Jobs
+apscheduler==3.10.4
+
+# REST API Framework (Phase C)
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# AWS Integration (for Parameter Store / deployment)
+boto3==1.26.89
+botocore==1.29.89
+
+# Rate Limiting & Security
+slowapi==0.1.9
+
+# Optional: Search backends
+googlesearch-python==1.2.3

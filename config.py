@@ -6,11 +6,12 @@ load_dotenv()
 
 # Configuration values loaded from environment or defaults
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not set in environment.")
+# Note: OPENAI_API_KEY is optional for basic API operations
+# It's only required for RAG system features (explanations with citations)
 PLAYWRIGHT_BROWS_PATH = os.getenv("PLAYWRIGHT_BROWS_PATH")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
+SEARCH_API_KEY = os.getenv("SEARCH_API_KEY")  # Optional, for SerpAPI
 USER_AGENT = os.getenv("USER_AGENT", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
 
 # Default search queries used by the search agent; override in .env if desired

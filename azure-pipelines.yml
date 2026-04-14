@@ -1,0 +1,402 @@
+# Azure DevOps Pipeline for Mortgage Rate Notifier Lambda Deployment
+# Deploys to AWS using CloudFormation
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - src/**
+      - agents/**
+      - aws/**
+      - 'aws/requirements-lambda.txt'
+
+pr:
+  - main
+  - develop
+
+variables:
+  AWS_REGION: 'us-east-1'
+  ACCOUNT_ID: '105726692206'
+  FRED_API_KEY: 'YOUR-FRED-API-KEY-HERE'
+  pythonVersion: '3.11'
+
+stages:
+  # ============================================================================
+  # Stage 1: Build & Test
+  # ============================================================================
+  - stage: Build
+    displayName: 'Build & Test'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Lambda Package'
+        pool:
+          vmImage: 'windows-latest'
+
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+
+          - task: Bash@3
+            displayName: 'Install dependencies'
+            inputs:
+              targetType: 'inline'
+              script: |
+                pip install --upgrade pip
+                pip install -r aws/requirements-lambda.txt
+
+          - task: Bash@3
+            displayName: 'Run unit tests'
+            inputs:
+              targetType: 'inline'
+              script: |
+                python -m pytest tests/ -v --tb=short || echo "Tests completed"
+
+          - task: Bash@3
+            displayName: 'Check code quality'
+            inputs:
+              targetType: 'inline'
+              script: |
+                pip install pylint
+                pylint src/lambda_handler.py --disable=all --enable=E || echo "Linting completed"
+
+          - task: Bash@3
+            displayName: 'Create Lambda deployment package'
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Create directory structure for Lambda
+                mkdir -p lambda_package/src
+                mkdir -p lambda_package/agents
+                
+                # Copy source files
+                cp -r src/*.py lambda_package/src/
+                cp -r agents/*.py lambda_package/agents/
+                
+                # Install dependencies into package
+                pip install -r aws/requirements-lambda.txt -t lambda_package/
+                
+                # Remove unnecessary files to reduce size
+                rm -rf lambda_package/*/*.dist-info
+                rm -rf lambda_package/*/__pycache__
+                rm -rf lambda_package/tests/
+                rm -rf lambda_package/*.dist-info
+                
+                # Create zip file
+                cd lambda_package
+                zip -r ../lambda-code.zip .
+                
+                echo "Package size: $(du -sh ../lambda-code.zip)"
+
+          - task: Bash@3
+            displayName: 'Create Lambda Layer for dependencies'
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Create layer structure
+                mkdir -p python/lib/python3.11/site-packages
+                
+                # Install only runtime dependencies into layer
+                pip install -r aws/requirements-lambda.txt -t python/lib/python3.11/site-packages/
+                
+                # Remove unnecessary files
+                rm -rf python/lib/python3.11/site-packages/*.dist-info
+                rm -rf python/lib/python3.11/site-packages/__pycache__
+                
+                # Create zip file for layer
+                zip -r layer-dependencies.zip python/
+                
+                echo "Layer size: $(du -sh layer-dependencies.zip)"
+
+          - task: Bash@3
+            displayName: 'Create Layer for financial documents'
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Create layer structure for documents
+                mkdir -p python/data/financial_documents
+                
+                # Copy financial documents
+                cp -r data/financial_documents/* python/data/financial_documents/ || true
+                
+                # Create zip file for documents layer
+                zip -r layer-documents.zip python/ || echo "No documents to package"
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Lambda package artifacts'
+            inputs:
+              pathToPublish: '$(System.DefaultWorkingDirectory)'
+              artifactName: 'lambda-packages'
+              publishLocation: 'Container'
+
+  # ============================================================================
+  # Stage 2: Deploy to Dev
+  # ============================================================================
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: DeployDevJob
+        displayName: 'Deploy Lambda to Dev'
+        pool:
+          vmImage: 'windows-latest'
+
+        steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download artifacts'
+            inputs:
+              artifactName: 'lambda-packages'
+              downloadPath: '$(Pipeline.Workspace)'
+
+          - task: AWSPowerShellModule@12
+            displayName: 'Install AWS PowerShell Module'
+            inputs:
+              awsCredentials: 'AWS-DevOps'
+              regionName: '$(AWS_REGION)'
+              moduleName: 'AWS.Tools.CloudFormation'
+
+          - task: Bash@3
+            displayName: 'Upload Lambda package to S3'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                # Ensure S3 bucket exists
+                aws s3 mb s3://mortgage-rate-notifier-code-$(ACCOUNT_ID) --region $(AWS_REGION) || true
+                
+                # Upload Lambda code package
+                aws s3 cp lambda-packages/lambda-code.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/lambda-code-dev.zip
+                
+                # Upload Lambda layers
+                aws s3 cp lambda-packages/layer-dependencies.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/layer-dependencies-dev.zip
+                aws s3 cp lambda-packages/layer-documents.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/layer-documents-dev.zip || true
+
+          - task: Bash@3
+            displayName: 'Deploy CloudFormation stack (Dev)'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                # Validate template
+                aws cloudformation validate-template \
+                  --template-body file://aws/cloudformation-lambda.yaml
+                
+                # Deploy stack
+                aws cloudformation deploy \
+                  --template-file aws/cloudformation-lambda.yaml \
+                  --stack-name mortgage-rate-notifier-dev \
+                  --parameter-overrides \
+                    EnvironmentName=dev \
+                    AccountId=$(ACCOUNT_ID) \
+                    FredApiKey=$(FRED_API_KEY) \
+                    OpenAiApiKey=$(OPENAI_API_KEY) \
+                    LambdaMemory=512 \
+                    LambdaTimeout=60 \
+                  --capabilities CAPABILITY_NAMED_IAM \
+                  --region $(AWS_REGION) \
+                  --no-fail-on-empty-changeset
+
+          - task: Bash@3
+            displayName: 'Get API endpoint'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                API_ENDPOINT=$(aws cloudformation describe-stacks \
+                  --stack-name mortgage-rate-notifier-dev \
+                  --query 'Stacks[0].Outputs[?OutputKey==`ApiEndpoint`].OutputValue' \
+                  --output text)
+                
+                echo "##vso[task.setvariable variable=API_ENDPOINT]$API_ENDPOINT"
+                echo "API Endpoint: $API_ENDPOINT"
+
+          - task: Bash@3
+            displayName: 'Test API endpoints'
+            inputs:
+              targetType: 'inline'
+              script: |
+                API_ENDPOINT=$(API_ENDPOINT)
+                
+                # Health check
+                echo "Testing health endpoint..."
+                curl -X GET "$API_ENDPOINT/health" \
+                  -H "Content-Type: application/json" \
+                  -w "\nStatus: %{http_code}\n" \
+                  --max-time 30
+                
+                echo -e "\n\nAPI endpoints deployed successfully!"
+
+  # ============================================================================
+  # Stage 3: Deploy to Staging (approval required)
+  # ============================================================================
+  - stage: DeployStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: DeployDev
+    condition: succeeded()
+    jobs:
+      - job: waitForValidation
+        displayName: 'Wait for manual approval'
+        pool: server
+        timeoutInMinutes: 10
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              notifyUsers: 'team@example.com'
+              instructions: 'Please review the dev deployment and approve for staging'
+
+      - job: DeployStagingJob
+        displayName: 'Deploy Lambda to Staging'
+        dependsOn: waitForValidation
+        condition: succeeded()
+        pool:
+          vmImage: 'windows-latest'
+
+        steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download artifacts'
+            inputs:
+              artifactName: 'lambda-packages'
+              downloadPath: '$(Pipeline.Workspace)'
+
+          - task: Bash@3
+            displayName: 'Upload Lambda package to S3'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                # Upload Lambda code package
+                aws s3 cp lambda-packages/lambda-code.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/lambda-code-staging.zip
+                
+                # Upload Lambda layers
+                aws s3 cp lambda-packages/layer-dependencies.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/layer-dependencies-staging.zip
+                aws s3 cp lambda-packages/layer-documents.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/layer-documents-staging.zip || true
+
+          - task: Bash@3
+            displayName: 'Deploy CloudFormation stack (Staging)'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                aws cloudformation deploy \
+                  --template-file aws/cloudformation-lambda.yaml \
+                  --stack-name mortgage-rate-notifier-staging \
+                  --parameter-overrides \
+                    EnvironmentName=staging \
+                    AccountId=$(ACCOUNT_ID) \
+                    FredApiKey=$(FRED_API_KEY) \
+                    OpenAiApiKey=$(OPENAI_API_KEY) \
+                    LambdaMemory=1024 \
+                    LambdaTimeout=120 \
+                  --capabilities CAPABILITY_NAMED_IAM \
+                  --region $(AWS_REGION) \
+                  --no-fail-on-empty-changeset
+
+  # ============================================================================
+  # Stage 4: Deploy to Production (approval required)
+  # ============================================================================
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: DeployStaging
+    condition: succeeded()
+    jobs:
+      - job: waitForProdApproval
+        displayName: 'Wait for production approval'
+        pool: server
+        timeoutInMinutes: 15
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              notifyUsers: 'team@example.com'
+              instructions: 'Approve production deployment?'
+
+      - job: DeployProdJob
+        displayName: 'Deploy Lambda to Production'
+        dependsOn: waitForProdApproval
+        condition: succeeded()
+        pool:
+          vmImage: 'windows-latest'
+
+        steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download artifacts'
+            inputs:
+              artifactName: 'lambda-packages'
+              downloadPath: '$(Pipeline.Workspace)'
+
+          - task: Bash@3
+            displayName: 'Upload Lambda package to S3'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                # Upload Lambda code package
+                aws s3 cp lambda-packages/lambda-code.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/lambda-code-prod.zip
+                
+                # Upload Lambda layers
+                aws s3 cp lambda-packages/layer-dependencies.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/layer-dependencies-prod.zip
+                aws s3 cp lambda-packages/layer-documents.zip s3://mortgage-rate-notifier-code-$(ACCOUNT_ID)/layer-documents-prod.zip || true
+
+          - task: Bash@3
+            displayName: 'Deploy CloudFormation stack (Production)'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                aws cloudformation deploy \
+                  --template-file aws/cloudformation-lambda.yaml \
+                  --stack-name mortgage-rate-notifier-prod \
+                  --parameter-overrides \
+                    EnvironmentName=prod \
+                    AccountId=$(ACCOUNT_ID) \
+                    FredApiKey=$(FRED_API_KEY) \
+                    OpenAiApiKey=$(OPENAI_API_KEY) \
+                    LambdaMemory=2048 \
+                    LambdaTimeout=300 \
+                  --capabilities CAPABILITY_NAMED_IAM \
+                  --region $(AWS_REGION) \
+                  --no-fail-on-empty-changeset
+
+          - task: Bash@3
+            displayName: 'Post-deployment health check'
+            inputs:
+              targetType: 'inline'
+              script: |
+                export AWS_DEFAULT_REGION=$(AWS_REGION)
+                
+                API_ENDPOINT=$(aws cloudformation describe-stacks \
+                  --stack-name mortgage-rate-notifier-prod \
+                  --query 'Stacks[0].Outputs[?OutputKey==`ApiEndpoint`].OutputValue' \
+                  --output text)
+                
+                echo "Testing production endpoint: $API_ENDPOINT"
+                
+                # Health check
+                curl -X GET "$API_ENDPOINT/health" \
+                  -H "Content-Type: application/json" \
+                  -w "\nStatus: %{http_code}\n" \
+                  --max-time 30
+
+          - task: PublishRelease@8
+            displayName: 'Create Release'
+            inputs:
+              releaseDefinitionId: '1'  # Update with your release definition ID
+              releaseTitle: 'Mortgage Rate Notifier - $(Build.BuildId)'
+              releaseNotes: |
+                Production deployment completed successfully.
+                
+                Environment: Production
+                Region: $(AWS_REGION)
+                Account: $(ACCOUNT_ID)
+

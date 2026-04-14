@@ -1,0 +1,56 @@
+# Multi-stage Dockerfile for Mortgage Rate Notifier
+# Optimized for production with AWS Parameter Store support
+
+# Stage 1: Builder
+FROM python:3.11-slim as builder
+
+WORKDIR /tmp
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install dependencies in a virtual environment
+RUN python -m venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.11-slim
+
+# Set metadata
+LABEL maintainer="Mortgage Rate Notifier"
+LABEL description="FastAPI application for mortgage rate decisions with AWS Parameter Store support"
+
+WORKDIR /app
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy application code
+COPY . .
+
+# Set production environment
+ENV ENVIRONMENT=production
+ENV AWS_REGION=us-east-1
+ENV PYTHONUNBUFFERED=1
+
+# Change ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Run the application
+CMD ["uvicorn", "src.api_server:app", "--host", "0.0.0.0", "--port", "8000"]

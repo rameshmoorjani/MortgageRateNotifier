@@ -1,0 +1,8 @@
+{
+  "id": "doc-rates-factors",
+  "title": "Factors Affecting Mortgage Rates",
+  "content": "\n        Mortgage interest rates are influenced by multiple economic factors:\n        \n        Federal Funds Rate: Set by the Federal Reserve, this is the primary driver of mortgage rates.\n        When the Fed raises rates, mortgage rates typically increase within days or weeks.\n        \n        Economic Indicators:\n        - Inflation: Higher inflation often leads to higher mortgage rates\n        - Employment data: Strong job market can push rates up\n        - GDP growth: Economic expansion affects rate trends\n        - Housing starts: New construction activity influences rates\n        \n        Market Conditions:\n        - Loan-to-value (LTV) ratio\n        - Debt-to-income (DTI) ratio\n        - Credit score\n        - Loan term length (15yr vs 30yr)\n        \n        Current trends (2024-2026):\n        - Rates have stabilized after 2023 increases\n        - 30-year mortgages typically 0.5-1.0% above 15-year rates\n        - ARM loans 0.25-0.75% lower than fixed rate\n        ",
+  "category": "mortgage_rates",
+  "source": "Federal Reserve Economic Data",
+  "date_added": "2026-04-08T08:17:30.146517"
+}

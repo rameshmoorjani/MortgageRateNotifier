@@ -1,0 +1,34 @@
+# Optimized requirements for Lambda deployment
+# Focuses on essential packages to keep deployment package small and cold start fast
+# Using pre-built wheels to avoid compilation on Windows
+
+# AI & LLM
+openai==1.3.5
+
+# Data & ML (using versions with pre-built wheels)
+pandas>=1.0
+numpy>=1.20
+scikit-learn>=1.0
+
+# Utilities
+python-dotenv>=1.0
+
+# AWS Integration
+boto3>=1.26
+botocore>=1.29
+
+# Web requests (minimal)
+requests==2.31.0
+
+# Note: The following are NOT included in Lambda (use Lambda Layers instead):
+# - playwright (too large, use requests instead)
+# - beautifulsoup4 (minimal usage, not in critical path)
+# - fastapi/uvicorn (replaced by Lambda handler)
+# - apscheduler (not needed in Lambda)
+# - slowapi (not needed in Lambda, rate limiting at API Gateway level)
+# - google-search-results (optional, can be added if needed)
+# - huggingface-hub (optional, can be added if needed)
+
+# These will be provided via Lambda Layers:
+# Layer 1: Python packages (created via pip install -r requirements.txt -t python/lib/python3.11/site-packages/)
+# Layer 2: Financial documents (RAG knowledge base files)
