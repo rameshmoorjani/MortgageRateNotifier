@@ -1,0 +1,390 @@
+{
+  "info": {
+    "name": "Mortgage Rate Notifier API",
+    "description": "Intelligent mortgage refinancing decision engine with rate prediction and RAG explanations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/health",
+              "protocol": "https",
+              "host": [
+                "vors6gfapf",
+                "execute-api",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "dev",
+                "health"
+              ]
+            },
+            "description": "Check if API is operational and get service information"
+          },
+          "response": [
+            {
+              "name": "Healthy Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/health",
+                  "protocol": "https",
+                  "host": [
+                    "vors6gfapf",
+                    "execute-api",
+                    "us-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "dev",
+                    "health"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"healthy\",\n  \"service\": \"Mortgage Rate Notifier\",\n  \"version\": \"1.0.0\",\n  \"timestamp\": \"2026-04-14T12:34:56.789Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/metrics",
+              "protocol": "https",
+              "host": [
+                "vors6gfapf",
+                "execute-api",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "dev",
+                "metrics"
+              ]
+            },
+            "description": "Get API usage metrics and performance statistics"
+          },
+          "response": [
+            {
+              "name": "Metrics Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/metrics",
+                  "protocol": "https",
+                  "host": [
+                    "vors6gfapf",
+                    "execute-api",
+                    "us-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "dev",
+                    "metrics"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"total_requests\": 1234,\n  \"successful_decisions\": 1200,\n  \"failed_decisions\": 34,\n  \"average_response_time_ms\": 342\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Decisions",
+      "item": [
+        {
+          "name": "Analyze Single Mortgage (Good Scenario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_data\": {\n    \"id\": \"USER-STRONG-001\",\n    \"name\": \"Sarah Johnson\",\n    \"current_rate\": 5.5,\n    \"loan_term_years\": 30,\n    \"monthly_payment\": 1500,\n    \"closing_costs\": 5500,\n    \"credit_score\": 780\n  },\n  \"prediction\": {\n    \"predicted_direction\": \"DOWN\",\n    \"predicted_average_30d\": 4.0,\n    \"confidence\": 0.87\n  }\n}"
+            },
+            "url": {
+              "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/decision",
+              "protocol": "https",
+              "host": [
+                "vors6gfapf",
+                "execute-api",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "dev",
+                "decision"
+              ]
+            },
+            "description": "Strong refinancing opportunity: High current rate (5.5%), predicted to drop to 4.0%"
+          },
+          "response": [
+            {
+              "name": "Strong Recommendation",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"user_data\": {...}, \"prediction\": {...}}"
+                },
+                "url": {
+                  "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/decision",
+                  "protocol": "https",
+                  "host": [
+                    "vors6gfapf",
+                    "execute-api",
+                    "us-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "dev",
+                    "decision"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"user_id\": \"USER-STRONG-001\",\n  \"decision\": {\n    \"recommendation\": \"STRONGLY_RECOMMENDED\",\n    \"monthly_saving\": 187.50,\n    \"breakeven_months\": 29,\n    \"confidence\": 0.87\n  },\n  \"analysis\": {\n    \"current_rate\": 5.5,\n    \"predicted_rate\": 4.0,\n    \"rate_difference\": 1.5\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Analyze Single Mortgage (Marginal Scenario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_data\": {\n    \"id\": \"USER-MARGINAL-001\",\n    \"name\": \"John Smith\",\n    \"current_rate\": 4.5,\n    \"loan_term_years\": 30,\n    \"monthly_payment\": 1200,\n    \"closing_costs\": 5500,\n    \"credit_score\": 750\n  },\n  \"prediction\": {\n    \"predicted_direction\": \"DOWN\",\n    \"predicted_average_30d\": 4.0,\n    \"confidence\": 0.82\n  }\n}"
+            },
+            "url": {
+              "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/decision",
+              "protocol": "https",
+              "host": [
+                "vors6gfapf",
+                "execute-api",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "dev",
+                "decision"
+              ]
+            },
+            "description": "Marginal refinancing opportunity: Moderate savings, long breakeven period"
+          },
+          "response": [
+            {
+              "name": "Marginal Recommendation",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{...}"
+                },
+                "url": {
+                  "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/decision",
+                  "protocol": "https",
+                  "host": [
+                    "vors6gfapf",
+                    "execute-api",
+                    "us-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "dev",
+                    "decision"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"user_id\": \"USER-MARGINAL-001\",\n  \"decision\": {\n    \"recommendation\": \"MARGINAL\",\n    \"monthly_saving\": 50.00,\n    \"breakeven_months\": 110,\n    \"confidence\": 0.82\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Analyze Single Mortgage (Not Recommended)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_data\": {\n    \"id\": \"USER-AVOID-001\",\n    \"name\": \"Mike Wilson\",\n    \"current_rate\": 3.5,\n    \"loan_term_years\": 30,\n    \"monthly_payment\": 900,\n    \"closing_costs\": 5500,\n    \"credit_score\": 720\n  },\n  \"prediction\": {\n    \"predicted_direction\": \"UP\",\n    \"predicted_average_30d\": 4.5,\n    \"confidence\": 0.91\n  }\n}"
+            },
+            "url": {
+              "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/decision",
+              "protocol": "https",
+              "host": [
+                "vors6gfapf",
+                "execute-api",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "dev",
+                "decision"
+              ]
+            },
+            "description": "Avoid refinancing: Rates predicted to INCREASE"
+          },
+          "response": [
+            {
+              "name": "Not Recommended",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{...}"
+                },
+                "url": {
+                  "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/decision",
+                  "protocol": "https",
+                  "host": [
+                    "vors6gfapf",
+                    "execute-api",
+                    "us-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "dev",
+                    "decision"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"user_id\": \"USER-AVOID-001\",\n  \"decision\": {\n    \"recommendation\": \"NOT_RECOMMENDED\",\n    \"monthly_saving\": -900.00,\n    \"breakeven_months\": null,\n    \"confidence\": 0.91\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Batch Processing",
+      "item": [
+        {
+          "name": "Analyze Multiple Users (Batch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"user_data\": {\n      \"id\": \"BATCH-USER-001\",\n      \"name\": \"Alice\",\n      \"current_rate\": 5.5,\n      \"loan_term_years\": 30,\n      \"monthly_payment\": 1500,\n      \"closing_costs\": 5500,\n      \"credit_score\": 780\n    },\n    \"prediction\": {\n      \"predicted_direction\": \"DOWN\",\n      \"predicted_average_30d\": 4.0,\n      \"confidence\": 0.87\n    }\n  },\n  {\n    \"user_data\": {\n      \"id\": \"BATCH-USER-002\",\n      \"name\": \"Bob\",\n      \"current_rate\": 4.5,\n      \"loan_term_years\": 30,\n      \"monthly_payment\": 1200,\n      \"closing_costs\": 5500,\n      \"credit_score\": 750\n    },\n    \"prediction\": {\n      \"predicted_direction\": \"DOWN\",\n      \"predicted_average_30d\": 4.0,\n      \"confidence\": 0.82\n    }\n  },\n  {\n    \"user_data\": {\n      \"id\": \"BATCH-USER-003\",\n      \"name\": \"Carol\",\n      \"current_rate\": 3.5,\n      \"loan_term_years\": 30,\n      \"monthly_payment\": 900,\n      \"closing_costs\": 5500,\n      \"credit_score\": 720\n    },\n    \"prediction\": {\n      \"predicted_direction\": \"UP\",\n      \"predicted_average_30d\": 4.5,\n      \"confidence\": 0.91\n    }\n  }\n]"
+            },
+            "url": {
+              "raw": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev/batch",
+              "protocol": "https",
+              "host": [
+                "vors6gfapf",
+                "execute-api",
+                "us-east-1",
+                "amazonaws",
+                "com"
+              ],
+              "path": [
+                "dev",
+                "batch"
+              ]
+            },
+            "description": "Process up to 100 users in a single request. Send array of user decision requests."
+          },
+          "response": [
+            {
+              "name": "Batch Results",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ]
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"total_processed\": 3,\n  \"successful\": 3,\n  \"failed\": 0,\n  \"results\": [\n    {\n      \"user_id\": \"BATCH-USER-001\",\n      \"recommendation\": \"STRONGLY_RECOMMENDED\",\n      \"monthly_saving\": 187.50,\n      \"breakeven_months\": 29\n    },\n    {\n      \"user_id\": \"BATCH-USER-002\",\n      \"recommendation\": \"MARGINAL\",\n      \"monthly_saving\": 50.00,\n      \"breakeven_months\": 110\n    },\n    {\n      \"user_id\": \"BATCH-USER-003\",\n      \"recommendation\": \"NOT_RECOMMENDED\",\n      \"monthly_saving\": -900.00\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://vors6gfapf.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    }
+  ]
+}
