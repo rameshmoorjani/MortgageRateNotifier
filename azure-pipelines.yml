@@ -20,7 +20,7 @@ pr:
 variables:
   AWS_REGION: 'us-east-1'
   ACCOUNT_ID: '105726692206'
-  FRED_API_KEY: 'YOUR-FRED-API-KEY-HERE'
+  FRED_API_KEY: 'your-fred-api-key-here'  # Set in Azure Pipelines secrets
   pythonVersion: '3.11'
 
 stages:

@@ -16,8 +16,7 @@ Parameters:
   FredApiKey:
     Type: String
     NoEcho: true
-    Default: 'YOUR-FRED-API-KEY-HERE'
-    Description: FRED API Key for mortgage rate data
+    Description: FRED API Key for mortgage rate data (required from secure source)
 
   OpenAiApiKey:
     Type: String
