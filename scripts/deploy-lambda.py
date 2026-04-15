@@ -23,7 +23,7 @@ from datetime import datetime
 ACCOUNT_ID = "105726692206"
 REGION = "us-east-1"
 PROJECT_NAME = "mortgage-rate-notifier"
-FRED_API_KEY = "63d0637021218655daf7ed773e7b583f"
+FRED_API_KEY = os.getenv('FRED_API_KEY', 'YOUR-FRED-API-KEY-HERE')
 
 # Colors for output
 class Colors:

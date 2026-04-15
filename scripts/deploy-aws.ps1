@@ -13,7 +13,7 @@ param(
     [string]$Region = "us-east-1",
     
     [Parameter(Mandatory=$false)]
-    [string]$FredApiKey = "63d0637021218655daf7ed773e7b583f"
+    [string]$FredApiKey = "YOUR-FRED-API-KEY-HERE"
 )
 
 $ErrorActionPreference = "Stop"

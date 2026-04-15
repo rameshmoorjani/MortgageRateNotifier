@@ -287,7 +287,7 @@ def main():
     print("  Step 0: Get API Keys")
     print("="*70 + "\n")
     
-    fred_key = "63d0637021218655daf7ed773e7b583f"
+    fred_key = os.getenv('FRED_API_KEY', 'YOUR-FRED-API-KEY-HERE')
     openai_key = input("Enter your OpenAI API Key (sk-...): ").strip()
     
     if not openai_key or not openai_key.startswith("sk-"):
