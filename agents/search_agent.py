@@ -1,5 +1,5 @@
 ﻿# agents/search_agent.py
-from config import SEARCH_QUERIES, SEARCH_API_KEY
+from src.config import SEARCH_QUERIES, SEARCH_API_KEY
 from typing import List, Dict, Any
 
 try:

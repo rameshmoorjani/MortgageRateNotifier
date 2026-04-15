@@ -1,7 +1,7 @@
 # agents/eligibility_agent.py
 import aiohttp
 import asyncio
-from config import AZ_KEYWORDS
+from src.config import AZ_KEYWORDS
 
 
 def _check_text_for_keywords(text: str) -> bool:

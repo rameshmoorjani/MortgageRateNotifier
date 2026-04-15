@@ -1,7 +1,7 @@
 # agents/email_agent.py
 import smtplib
 from email.mime.text import MIMEText
-from config import EMAIL_FROM, EMAIL_TO, EMAIL_PASSWORD, EMAIL_PREFIX
+from src.config import EMAIL_FROM, EMAIL_TO, EMAIL_PASSWORD, EMAIL_PREFIX
 
 def send_email(lenders):
     if not lenders: 

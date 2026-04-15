@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 try:
-    from src.config_aws import get_fred_api_key as get_fred_api_key_aws
+    from src.config.aws import get_fred_api_key as get_fred_api_key_aws
     HAS_AWS_CONFIG = True
 except ImportError:
     HAS_AWS_CONFIG = False

@@ -1,5 +1,5 @@
 # agents/filter_agent.py
-from config import RATE_THRESHOLD, TERMS
+from src.config import RATE_THRESHOLD, TERMS
 
 def filter_lenders(lenders):
     filtered = []
