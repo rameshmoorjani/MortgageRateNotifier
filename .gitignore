@@ -11,3 +11,7 @@ __pycache__/
 .pytest_cache/
 dist/
 build/
+
+# Ignore internal guides (for personal reference only, not for public repo)
+GITHUB_PUBLISHING_GUIDE.md
+GITHUB_QUICK_START.md
